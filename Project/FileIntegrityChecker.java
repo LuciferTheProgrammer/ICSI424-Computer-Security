@@ -26,11 +26,11 @@ public class FileIntegrityChecker {
                 String filePath = file.getAbsolutePath();
                 long fileSize = file.length();
                 long lastUpdated = file.lastModified();
-                String permissions = ""; /* retrievePermissions(file) -> to be implemented*/
+                String permissions = ""; /** retrievePermissions(file); -> to be implemented*/
                 FileInfo fileRecord = new FileInfo(filePath, fileSize, lastUpdated, permissions);
                 for(String algorithm: Crypto_Algorithms) {
                     long start = System.currentTimeMillis();
-                    String hashCode = "" /*generateFileHashCode(file, algorithm) -> to be implemented*/;
+                    String hashCode = ""; /** generateFileHashCode(file, algorithm); -> to be implemented **/
                     long end = System.currentTimeMillis();
                     long timeLapse = end - start;
                     switch(algorithm) {
@@ -47,7 +47,7 @@ public class FileIntegrityChecker {
                             break;
                         }
                     }
-                    /*updateHashStatistics(algorithm, timeLapse) -> to be implemented*/
+                    /** updateHashStatistics(algorithm, timeLapse); -> to be implemented **/
                 }
                 baselineValue.put(fileRecord.filePath, fileRecord);
             }
@@ -56,4 +56,19 @@ public class FileIntegrityChecker {
             }
         }
     }
+    public static void monitor(String projectDir) {
+        while(true) {
+            Map<String, FileInfo> current = new HashMap<>(); /** scanCurrentDir(projectDir); -> to be implemented **/
+            /** indentifyModifications(baselineValue, current); -> to be implemented **/
+            /** generatePerformanceStats(); -> to be implemented **/
+            try {
+                Thread.sleep(checkerInterval);
+            }
+            catch(InterruptedException e) {
+                System.out.println("Timer was interrupted.");
+                break;
+            }
+        }
+    }
+
 }
