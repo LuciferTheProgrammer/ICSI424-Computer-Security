@@ -20,7 +20,7 @@ public class FileIntegrityChecker {
      * Will only run once.
       * @param projectDirectory The root project directory.
      */
-    public static void createBaseline(String projectDirectory) {
+    public void createBaseline(String projectDirectory) {
         File dir = new File(projectDirectory);
         if((!dir.exists()) || (!dir.isDirectory())) {
             System.out.println("The provided directory does not exist or is not a directory.");
@@ -67,7 +67,7 @@ public class FileIntegrityChecker {
      * To monitor any changes for the files or subdirectories in the given project directory.
      * @param projectDir The root project directory.
      */
-    public static void monitor(String projectDir) {
+    public void monitor(String projectDir) {
         while(true) {
             Map<String, FileInfo> current = scanCurrentDir(projectDir);
             detectModifications(baselineValue, current);
@@ -88,7 +88,7 @@ public class FileIntegrityChecker {
      * @param dirPath The root project directory.
      * @return The state of all the files and subdirectories contained in the project directory.
      */
-    public static Map<String, FileInfo> scanCurrentDir(String dirPath) {
+    public Map<String, FileInfo> scanCurrentDir(String dirPath) {
         Map<String, FileInfo> current = new HashMap<>();
         File directory = new File(dirPath);
         if ((!directory.exists()) || (!directory.isDirectory())) {
@@ -141,7 +141,7 @@ public class FileIntegrityChecker {
      * @param baseline The state of the project directory when the application is first executed, saved as a baseline.
      * @param current The state of the current project directory. This is consistently checked by the program, compared with the baseline.
      */
-    public static void detectModifications(Map<String, FileInfo> baseline, Map<String, FileInfo> current) {
+    public void detectModifications(Map<String, FileInfo> baseline, Map<String, FileInfo> current) {
         for(String file: baseline.keySet()) {
             if(!current.containsKey(file)) {
                 System.out.println("The file " + file + " has been renamed, moved, or deleted.");
@@ -173,22 +173,22 @@ public class FileIntegrityChecker {
         }
 
     }
-    public static String generateFileHashCode(File file, String algorithm) {
+    public String generateFileHashCode(File file, String algorithm) {
         return "";
     }
-    public static void updateHashStatistics(String algorithm, long timeLapse) {
+    public void updateHashStatistics(String algorithm, long timeLapse) {
         return;
     }
-    public static void generatePerformanceStats() {
+    public void generatePerformanceStats() {
         return;
     }
-    public static String retrievePermissions(File file) {
+    public String retrievePermissions(File file) {
         return "";
     }
-    public static void saveBaseline(String baseline) {
+    public void saveBaseline(String baseline) {
         return;
     }
-    public static void loadBaseline(String baseline) {
+    public void loadBaseline(String baseline) {
         return;
     }
 
