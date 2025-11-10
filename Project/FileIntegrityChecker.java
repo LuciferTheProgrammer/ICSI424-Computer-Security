@@ -8,7 +8,7 @@ import java.util.Map;
 // File Integrity Checker Program.
 public class FileIntegrityChecker {
     private static final int checkerInterval =  300000;
-    private static final String[] Crypto_Algorithms = {"MD5", "SHA-256", "SHA-512"};
+    private final enum Crypto_Algorithms = {MD5, SHA_256, SHA_512};
     private static Map<String, FileInfo> baselineValue = new HashMap<>();
     private static Map<String, HashInfo> HashCodes = new HashMap<>();
     public static void main(String[] args) {
@@ -34,21 +34,21 @@ public class FileIntegrityChecker {
                 long lastUpdated = file.lastModified();
                 String permissions = retrievePermissions(file); //to be implemented
                 FileInfo fileRecord = new FileInfo(filePath, fileSize, lastUpdated, permissions);
-                for(String algorithm: Crypto_Algorithms) {
+                for(Crypto_Algorithms algorithm: Crypto_Algorithms.values()) {
                     long start = System.currentTimeMillis();
                     String hashCode = generateFileHashCode(file, algorithm); //to be implemented
                     long end = System.currentTimeMillis();
                     long timeLapse = end - start;
                     switch(algorithm) {
-                        case "MD5" : {
+                        case MD5 : {
                             fileRecord.MD5 = hashCode;
                             break;
                         }
-                        case "SHA-256" : {
+                        case SHA_256 : {
                             fileRecord.SHA256 = hashCode;
                             break;
                         }
-                        case "SHA-512": {
+                        case SHA_512 : {
                             fileRecord.SHA512 = hashCode;
                             break;
                         }
@@ -103,21 +103,21 @@ public class FileIntegrityChecker {
                 long lastUpdated = file.lastModified();
                 String permissions = retrievePermissions(file); //to be implemented
                 FileInfo fileRecord = new FileInfo(filePath, fileSize, lastUpdated, permissions);
-                for (String algorithm : Crypto_Algorithms) {
+                for (Crypto_Algorithms algorithm : Crypto_Algorithms.values()) {
                     long start = System.currentTimeMillis();
                     String hashCode = generateFileHashCode(file, algorithm); //to be implemented
                     long end = System.currentTimeMillis();
                     long timeLapse = end - start;
                     switch (algorithm) {
-                        case "MD5": {
+                        case MD5: {
                             fileRecord.MD5 = hashCode;
                             break;
                         }
-                        case "SHA-256": {
+                        case SHA_256: {
                             fileRecord.SHA256 = hashCode;
                             break;
                         }
-                        case "SHA-512": {
+                        case SHA_512: {
                             fileRecord.SHA512 = hashCode;
                             break;
                         }
@@ -173,16 +173,16 @@ public class FileIntegrityChecker {
         }
     }
 
-    public String generateFileHashCode(File file, String algorithm) {
+    public String generateFileHashCode(File file, Crypto_Algorithms algorithm) {
         String hash = "";
         switch (algorithm) {
-            case "MD5": {
+            case MD5 : {
                 hash = hashMD5(File file);
             }
-            case "SHA-256": {
+            case SHA_256 : {
                 hash = hashSHA256(File file);
             }
-            case "SHA-512": {
+            case SHA_512 : {
                 hash = hashSHA512(File file);
             }
         }
