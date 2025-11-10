@@ -32,11 +32,11 @@ public class FileIntegrityChecker {
                 String filePath = file.getAbsolutePath();
                 long fileSize = file.length();
                 long lastUpdated = file.lastModified();
-                String permissions = ""; /** retrievePermissions(file); -> to be implemented*/
+                String permissions = retrievePermissions(file); //to be implemented
                 FileInfo fileRecord = new FileInfo(filePath, fileSize, lastUpdated, permissions);
                 for(String algorithm: Crypto_Algorithms) {
                     long start = System.currentTimeMillis();
-                    String hashCode = ""; /** generateFileHashCode(file, algorithm); -> to be implemented **/
+                    String hashCode = generateFileHashCode(file, algorithm); //to be implemented
                     long end = System.currentTimeMillis();
                     long timeLapse = end - start;
                     switch(algorithm) {
@@ -53,7 +53,7 @@ public class FileIntegrityChecker {
                             break;
                         }
                     }
-                    /** updateHashStatistics(algorithm, timeLapse); -> to be implemented **/
+                    updateHashStatistics(algorithm, timeLapse); //to be implemented
                 }
                 baselineValue.put(fileRecord.filePath, fileRecord);
             }
@@ -71,13 +71,13 @@ public class FileIntegrityChecker {
         while(true) {
             Map<String, FileInfo> current = scanCurrentDir(projectDir);
             detectModifications(baselineValue, current);
-            /** generatePerformanceStats(); -> to be implemented **/
+            generatePerformanceStats(); //to be implemented
             try {
                 Thread.sleep(checkerInterval);
             }
             catch(InterruptedException e) {
                 System.out.println("Timer was interrupted.");
-                break;
+                return;
             }
         }
     }
@@ -101,11 +101,11 @@ public class FileIntegrityChecker {
                 String filePath = file.getAbsolutePath();
                 long fileSize = file.length();
                 long lastUpdated = file.lastModified();
-                String permissions = ""; /** retrievePermissions(file); -> to be implemented*/
+                String permissions = retrievePermissions(file); //to be implemented
                 FileInfo fileRecord = new FileInfo(filePath, fileSize, lastUpdated, permissions);
                 for (String algorithm : Crypto_Algorithms) {
                     long start = System.currentTimeMillis();
-                    String hashCode = ""; /** generateFileHashCode(file, algorithm); -> to be implemented **/
+                    String hashCode = generateFileHashCode(file, algorithm); //to be implemented
                     long end = System.currentTimeMillis();
                     long timeLapse = end - start;
                     switch (algorithm) {
@@ -122,7 +122,7 @@ public class FileIntegrityChecker {
                             break;
                         }
                     }
-                    /** updateHashStatistics(algorithm, timeLapse); -> to be implemented **/
+                    updateHashStatistics(algorithm, timeLapse); //to be implemented
                 }
                 current.put(fileRecord.filePath, fileRecord);
             }
@@ -171,11 +171,25 @@ public class FileIntegrityChecker {
                 System.out.println("A new " + newFile + " has been added to the project directory.");
             }
         }
+    }
 
-    }
     public String generateFileHashCode(File file, String algorithm) {
-        return "";
+        String hash = "";
+        switch (algorithm) {
+            case "MD5": {
+                hash = hashMD5(File file);
+            }
+            case "SHA-256": {
+                hash = hashSHA256(File file);
+            }
+            case "SHA-512": {
+                hash = hashSHA512(File file);
+            }
+        }
+
+        return hash;
     }
+
     public void updateHashStatistics(String algorithm, long timeLapse) {
         return;
     }
@@ -192,4 +206,15 @@ public class FileIntegrityChecker {
         return;
     }
 
+    private String hashMD5(File file) {
+        return "";
+    }
+
+    private String hashSHA256(File file) {
+        return "";
+    }
+
+    private String hashSHA512(File file) {
+        return "";
+    }
 }
