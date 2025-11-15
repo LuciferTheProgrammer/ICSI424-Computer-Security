@@ -10,9 +10,12 @@ import java.io.IOException;
 import java.util.HexFormat;
 import java.io.*;
 import java.util.Scanner;
-
+import java.util.List;
+import java.util.ArrayList;
+import javax.swing.JOptionPane;
 // File Integrity Checker Program.
 public class FileIntegrityChecker {
+    private static final List<String> alerts = new ArrayList<>();
     private static final int checkerInterval =  60000;
     private enum Crypto_Algorithms {
         MD5("MD5"), SHA_256("SHA-256"), SHA_512("SHA-512");
@@ -109,7 +112,9 @@ public class FileIntegrityChecker {
     public void monitor(String projectDir) throws Exception {
         while(true) {
             Map<String, FileInfo> current = scanCurrentDir(projectDir);
+            alerts.clear();
             detectModifications(baselineValue, current);
+            popAlerts();
             baselineValue.clear();
             baselineValue.putAll(current);
             saveBaseline("Baseline Checker.txt");
@@ -190,6 +195,7 @@ public class FileIntegrityChecker {
             if (!current.containsKey(file)) {
                 System.out.println("The file " + file + " has been renamed, moved, or deleted.");
                 logging("The file " + file + " has been renamed, moved, or deleted.");
+                alerts.add("File: " + file + " was modified, moved, or deleted.");
                 continue;
             }
             FileInfo oldRecord = baseline.get(file);
@@ -197,27 +203,29 @@ public class FileIntegrityChecker {
             if (oldRecord.fileSize != newRecord.fileSize) {
                 System.out.println("The system has detected that the file: " + file + " has been modified by change in file size.");
                 logging("The system has detected that the file: " + file + " has been modified by change in file size.");
-
+                alerts.add("File size has changed for " + file + ".");
             }
             if (oldRecord.lastUpdated != newRecord.lastUpdated) {
                 System.out.println("The system has detected that the file: " + file + " has been modified by change in file last date updated.");
                 logging("The system has detected that the file: " + file + " has been modified by change in file last date updated.");
-
+                alerts.add("Last date modified has changed for " + file + ".");
             }
             if (!oldRecord.permissions.equals(newRecord.permissions)) {
                 System.out.println("The system has detected that the file: " + file + " has been modified by change in file permissions.");
                 logging("The system has detected that the file: " + file + " has been modified by change in file permissions.");
-
+                alerts.add("Permissions has changed for " + file + ".");
             }
             if ((!oldRecord.MD5.equals(newRecord.MD5)) || (!oldRecord.SHA256.equals(newRecord.SHA256)) || (!oldRecord.SHA512.equals(newRecord.SHA512))) {
                 System.out.println("The system has detected that the file: " + file + " has been modified by change in file MD value.");
                 logging("The system has detected that the file: " + file + " has been modified by change in file MD value.");
+                alerts.add("MD value has changed for " + file + ".");
             }
         }
         for (String newFile : current.keySet()) {
             if (!baseline.containsKey(newFile)) {
                 System.out.println("A new " + newFile + " has been added to the project directory.");
                 logging("A new " + newFile + " has been added to the project directory.");
+                alerts.add("A new " + newFile + " has been added.");
             }
         }
     }
@@ -454,6 +462,18 @@ public class FileIntegrityChecker {
         catch(IOException e) {
             System.out.println("File IO error while writing to a logger: " + e.getMessage());
             System.exit(-1);
+        }
+    }
+
+    private static void popAlerts() {
+        if(alerts.isEmpty()) {
+            return;
+        }
+        else {
+            String containerAlerts = String.join("\n", alerts);
+            Thread tr = new Thread(() -> JOptionPane.showMessageDialog(null, containerAlerts, "File Integrity Alert Event", JOptionPane.WARNING_MESSAGE));
+            tr.start();
+            alerts.clear();
         }
     }
 }
