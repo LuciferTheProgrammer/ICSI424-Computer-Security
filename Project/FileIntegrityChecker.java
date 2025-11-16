@@ -31,22 +31,22 @@ public class FileIntegrityChecker {
     private static Map<String, FileInfo> baselineValue = new HashMap<>();
     private static Map<String, HashInfo> HashCodes = new HashMap<>();
     public static void main(String[] args) throws Exception {
+        FileIntegrityChecker checker = new FileIntegrityChecker();
         String baseline = "Baseline Checker.txt";
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter a project directory to monitor: ");
         String filePath = scanner.nextLine();
-        logging("Enter a project directory to monitor: " + filePath);
+        checker.logging("Enter a project directory to monitor: " + filePath);
         File directory = new File(filePath);
         if(!directory.exists() || !directory.isDirectory()) {
             System.out.println("Given directory does not exist. Please choose a valid directory.");
-            logging("Given directory does not exist. Please choose a valid directory.");
+            checker.logging("Given directory does not exist. Please choose a valid directory.");
             System.exit(1);
         }
         for(Crypto_Algorithms algorithm : Crypto_Algorithms.values()) {
             HashInfo hash = new HashInfo();
             HashCodes.put(algorithm.algo_type(), hash);
         }
-        FileIntegrityChecker checker = new FileIntegrityChecker();
         boolean target = checker.loadBaseline(baseline);
         String container = directory.getAbsolutePath();
         if(!target) {
@@ -61,7 +61,7 @@ public class FileIntegrityChecker {
      * Will only run once.
      * @param projectDirectory The root project directory.
      */
-    public void createBaseline(String projectDirectory) throws Exception {
+    private void createBaseline(String projectDirectory) throws Exception {
         File dir = new File(projectDirectory);
         if((!dir.exists()) || (!dir.isDirectory())) {
             System.out.println("The provided directory does not exist or is not a directory.");
@@ -109,7 +109,7 @@ public class FileIntegrityChecker {
      * To monitor any changes for the files or subdirectories in the given project directory.
      * @param projectDir The root project directory.
      */
-    public void monitor(String projectDir) throws Exception {
+    private void monitor(String projectDir) throws Exception {
         while(true) {
             Map<String, FileInfo> current = scanCurrentDir(projectDir);
             alerts.clear();
@@ -136,7 +136,7 @@ public class FileIntegrityChecker {
      * @param dirPath The root project directory.
      * @return The state of all the files and subdirectories contained in the project directory.
      */
-    public Map<String, FileInfo> scanCurrentDir(String dirPath) throws Exception {
+    private Map<String, FileInfo> scanCurrentDir(String dirPath) throws Exception {
         Map<String, FileInfo> current = new HashMap<>();
         File directory = new File(dirPath);
         if ((!directory.exists()) || (!directory.isDirectory())) {
@@ -190,12 +190,12 @@ public class FileIntegrityChecker {
      * @param baseline The state of the project directory when the application is first executed, saved as a baseline.
      * @param current The state of the current project directory. This is consistently checked by the program, compared with the baseline.
      */
-    public void detectModifications(Map<String, FileInfo> baseline, Map<String, FileInfo> current) {
+    private void detectModifications(Map<String, FileInfo> baseline, Map<String, FileInfo> current) {
         for(String file: baseline.keySet()) {
             if (!current.containsKey(file)) {
                 System.out.println("The file " + file + " has been renamed, moved, or deleted.");
                 logging("The file " + file + " has been renamed, moved, or deleted.");
-                alerts.add("File: " + file + " was modified, moved, or deleted.");
+                alerts.add("File: " + file + " was renamed, moved, or deleted.");
                 continue;
             }
             FileInfo oldRecord = baseline.get(file);
@@ -223,14 +223,14 @@ public class FileIntegrityChecker {
         }
         for (String newFile : current.keySet()) {
             if (!baseline.containsKey(newFile)) {
-                System.out.println("A new " + newFile + " has been added to the project directory.");
-                logging("A new " + newFile + " has been added to the project directory.");
-                alerts.add("A new " + newFile + " has been added.");
+                System.out.println("A new file " + newFile + " has been added to the project directory.");
+                logging("A new file " + newFile + " has been added to the project directory.");
+                alerts.add("A new file " + newFile + " has been added.");
             }
         }
     }
 
-    public String generateFileHashCode(File file, Crypto_Algorithms algorithm) throws Exception {
+    private String generateFileHashCode(File file, Crypto_Algorithms algorithm) throws Exception {
         String hash = "";
         switch (algorithm) {
             case MD5 : {
@@ -250,7 +250,7 @@ public class FileIntegrityChecker {
         return hash;
     }
 
-    public void updateHashStatistics(String algorithm, long timeLapse) {
+    private void updateHashStatistics(String algorithm, long timeLapse) {
         HashInfo statistics = HashCodes.get(algorithm);
         if(statistics == null) {
             HashInfo hashRecord = new HashInfo();
@@ -261,7 +261,7 @@ public class FileIntegrityChecker {
         statistics.totalTime += timeLapse;
         statistics.count++;
     }
-    public void generatePerformanceStats() {
+    private void generatePerformanceStats() {
         long averageTime = 0;
         for(String algoType: HashCodes.keySet()) {
             HashInfo statistics = HashCodes.get(algoType);
@@ -275,7 +275,7 @@ public class FileIntegrityChecker {
             logging("The statistics for " + algoType + " algorithm are: " + statistics.count + " in frequency, " + statistics.totalTime + " milliseconds in total time, and " + averageTime + " milliseconds in average time.");
         }
     }
-    public String retrievePermissions(File file) {
+    private String retrievePermissions(File file) {
         StringBuilder build = new StringBuilder();
         if(file.canRead()) {
             build.append("r");
@@ -297,7 +297,7 @@ public class FileIntegrityChecker {
         }
         return build.toString();
     }
-    public void saveBaseline(String baseline) {
+    private void saveBaseline(String baseline) {
         Path currentDir = Paths.get("").toAbsolutePath();
         String baseLogDirectory = "File_Integrity_Checker_Baseline";
         Path subdir = currentDir.resolve(baseLogDirectory);
@@ -327,7 +327,7 @@ public class FileIntegrityChecker {
             System.exit(-1);
         }
     }
-    public boolean loadBaseline(String baseline) {
+    private boolean loadBaseline(String baseline) {
         boolean loaded = false;
         Path currentDir = Paths.get("").toAbsolutePath();
         String baseLogDirectory = "File_Integrity_Checker_Baseline";
@@ -444,7 +444,7 @@ public class FileIntegrityChecker {
         return hash;
     }
 
-    private static void logging(String message) {
+    private void logging(String message) {
         Path currentDir = Paths.get("").toAbsolutePath();
         String baseLogDirectory = "File_Integrity_Checker_Logger";
         Path dir = currentDir.resolve(baseLogDirectory);
@@ -465,7 +465,7 @@ public class FileIntegrityChecker {
         }
     }
 
-    private static void popAlerts() {
+    private void popAlerts() {
         if(alerts.isEmpty()) {
             return;
         }
