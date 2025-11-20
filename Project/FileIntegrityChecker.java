@@ -13,6 +13,7 @@ import java.util.Scanner;
 import java.util.List;
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
+
 // File Integrity Checker Program.
 public class FileIntegrityChecker {
     private static final List<String> alerts = new ArrayList<>();
@@ -174,12 +175,14 @@ public class FileIntegrityChecker {
                     updateHashStatistics(algorithm.algo_type(), timeLapse); //to be implemented
                 }
                 current.put(fileRecord.filePath, fileRecord);
+                String fName = file.getName();
+                System.out.println("Message Digest was created successfully for " + fName + ".");
+                logging("Message Digest was created successfully for " + fName + ".");
             }
             else if (file.isDirectory()) {
                 Map<String, FileInfo> subdirMap = scanCurrentDir(file.getAbsolutePath());
                 current.putAll(subdirMap);
             }
-
         }
         return current;
     }
@@ -246,7 +249,6 @@ public class FileIntegrityChecker {
                 break;
             }
         }
-
         return hash;
     }
 
@@ -379,8 +381,6 @@ public class FileIntegrityChecker {
     private String hashMD5(File file) throws NoSuchAlgorithmException, IOException {
         String hash = "";
         MessageDigest md = MessageDigest.getInstance("MD5");
-        System.out.println("Message Digest using MD5 was created successfully.");
-        logging("Message Digest using MD5 was created successfully.");
         try (FileInputStream fileIS = new FileInputStream(file)) {
             byte[] container = new byte[1024];
             int counter;
@@ -402,8 +402,6 @@ public class FileIntegrityChecker {
     private String hashSHA256(File file) throws NoSuchAlgorithmException, IOException {
         String hash = "";
         MessageDigest md = MessageDigest.getInstance("SHA-256");
-        System.out.println("Message Digest using SHA_256 was created successfully.");
-        logging("Message Digest using SHA_256 was created successfully.");
         try (FileInputStream fileIS = new FileInputStream(file)) {
             byte[] container = new byte[1024];
             int counter;
@@ -425,8 +423,6 @@ public class FileIntegrityChecker {
     private String hashSHA512(File file) throws NoSuchAlgorithmException, IOException {
         String hash = "";
         MessageDigest md = MessageDigest.getInstance("SHA-512");
-        System.out.println("Message Digest using SHA_512 was created successfully.");
-        logging("Message Digest using SHA_512 was created successfully.");
         try (FileInputStream fileIS = new FileInputStream(file)) {
             byte[] container = new byte[1024];
             int counter;
