@@ -14,7 +14,14 @@ import java.util.List;
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
 
-// File Integrity Checker Program.
+// File Integrity Checker Program. This program is to ensure the original integrity of files that it originally
+// computed hash codes for via 3 different hashing algorithms like the MD5, SHA-256, and SHA-512 are kept.
+// The original, first computed, hash codes are stored as the baseline so the program then
+// checks the directory containing the target files every 1 minute, here being 60,000 ms. If the original files
+// have been removed, deleted, or modified -> i.e. change in attributes such as file size by change in content,
+// last modified, or change of permissions the corresponding hash code that would be computed will be compared
+// to the baseline and since the 2 hash codes are different an alert will then popup at the user's screen
+// to notify them of the change in the specific file.
 public class FileIntegrityChecker {
     private static final List<String> alerts = new ArrayList<>();
     private static final int checkerInterval =  60000;
@@ -31,6 +38,8 @@ public class FileIntegrityChecker {
     private static final String logPath = "LoggerEvents.txt";
     private static Map<String, FileInfo> baselineValue = new HashMap<>();
     private static Map<String, HashInfo> HashCodes = new HashMap<>();
+
+    // To run the File Integrity Checker Program.
     public static void main(String[] args) throws Exception {
         FileIntegrityChecker checker = new FileIntegrityChecker();
         String baseline = "Baseline Checker.txt";
@@ -58,8 +67,11 @@ public class FileIntegrityChecker {
     }
 
     /**
-     * To create a baseline to in a given root directory when the program is first checked.
-     * Will only run once.
+     * To create a baseline in a given root directory when the program is first checked.
+     * Will only run once. The baseline contains the file path, file size, last date modified, permission, and the
+     * 3 computed hash values for MD5, SHA-256, and SHA-512 for each of the files in the given directory program is executed.
+     * Later used for direct comparison to when files are checked again to ensure no malicious tampering occured and to secure the
+     * files' integrity.
      * @param projectDirectory The root project directory.
      */
     private void createBaseline(String projectDirectory) throws Exception {
@@ -75,11 +87,11 @@ public class FileIntegrityChecker {
                 String filePath = file.getAbsolutePath();
                 long fileSize = file.length();
                 long lastUpdated = file.lastModified();
-                String permissions = retrievePermissions(file); //to be implemented
+                String permissions = retrievePermissions(file);
                 FileInfo fileRecord = new FileInfo(filePath, fileSize, lastUpdated, permissions);
                 for(Crypto_Algorithms algorithm: Crypto_Algorithms.values()) {
                     long start = System.currentTimeMillis();
-                    String hashCode = generateFileHashCode(file, algorithm); //to be implemented
+                    String hashCode = generateFileHashCode(file, algorithm);
                     long end = System.currentTimeMillis();
                     long timeLapse = end - start;
                     switch(algorithm) {
@@ -96,7 +108,7 @@ public class FileIntegrityChecker {
                             break;
                         }
                     }
-                    updateHashStatistics(algorithm.algo_type(), timeLapse); //to be implemented
+                    updateHashStatistics(algorithm.algo_type(), timeLapse);
                 }
                 baselineValue.put(fileRecord.filePath, fileRecord);
             }
@@ -108,6 +120,8 @@ public class FileIntegrityChecker {
 
     /**
      * To monitor any changes for the files or subdirectories in the given project directory.
+     * Again, checks for any suspicious activity that may have altered the files in a given directory
+     * every 1 minute.
      * @param projectDir The root project directory.
      */
     private void monitor(String projectDir) throws Exception {
@@ -119,7 +133,7 @@ public class FileIntegrityChecker {
             baselineValue.clear();
             baselineValue.putAll(current);
             saveBaseline("Baseline Checker.txt");
-            generatePerformanceStats(); //to be implemented
+            generatePerformanceStats();
             try {
                 Thread.sleep(checkerInterval);
             }
@@ -133,7 +147,8 @@ public class FileIntegrityChecker {
 
     /**
      * Constantly checks for any changes in the given files or subdirectories in the base
-     * project directory.
+     * project directory. Also saves the time for how long each hash algorithm took to compute the
+     * hash value for each file.
      * @param dirPath The root project directory.
      * @return The state of all the files and subdirectories contained in the project directory.
      */
@@ -151,11 +166,11 @@ public class FileIntegrityChecker {
                 String filePath = file.getAbsolutePath();
                 long fileSize = file.length();
                 long lastUpdated = file.lastModified();
-                String permissions = retrievePermissions(file); //to be implemented
+                String permissions = retrievePermissions(file);
                 FileInfo fileRecord = new FileInfo(filePath, fileSize, lastUpdated, permissions);
                 for (Crypto_Algorithms algorithm : Crypto_Algorithms.values()) {
                     long start = System.currentTimeMillis();
-                    String hashCode = generateFileHashCode(file, algorithm); //to be implemented
+                    String hashCode = generateFileHashCode(file, algorithm);
                     long end = System.currentTimeMillis();
                     long timeLapse = end - start;
                     switch (algorithm) {
@@ -172,7 +187,7 @@ public class FileIntegrityChecker {
                             break;
                         }
                     }
-                    updateHashStatistics(algorithm.algo_type(), timeLapse); //to be implemented
+                    updateHashStatistics(algorithm.algo_type(), timeLapse);
                 }
                 current.put(fileRecord.filePath, fileRecord);
                 String fName = file.getName();
@@ -233,6 +248,14 @@ public class FileIntegrityChecker {
         }
     }
 
+    /**
+     * This generates hash value for a file, where it can be generated by a different
+     * cryptographic hashing algorithm: MD5, SHA-256, or SHA-512.
+     * @param file The file to generate a hash value for.
+     * @param algorithm The type of cryptographic hashing algorithm.
+     * @return The computed hash value for the file.
+     * @throws Exception if an error occurs.
+     */
     private String generateFileHashCode(File file, Crypto_Algorithms algorithm) throws Exception {
         String hash = "";
         switch (algorithm) {
@@ -252,6 +275,14 @@ public class FileIntegrityChecker {
         return hash;
     }
 
+    /**
+     * This updates statistical information for each specific hashing algorithm (MD5, SHA-256, or SHA-512) which
+     * include how many times they were used -> based on the number of files, and the total time that each
+     * algorithm took to compute the hash codes for all the files in the target directory.
+     * @param algorithm The specific hashing algorithm (MD5, SHA-256, or SHA-512).
+     * @param timeLapse The total time it took for the hashing algorithm to compute all the hash codes for all the files in a given directory.
+     *
+     */
     private void updateHashStatistics(String algorithm, long timeLapse) {
         HashInfo statistics = HashCodes.get(algorithm);
         if(statistics == null) {
@@ -263,6 +294,13 @@ public class FileIntegrityChecker {
         statistics.totalTime += timeLapse;
         statistics.count++;
     }
+
+    /**
+     * To generate a numerical performance report for each hashing algorithm (MD5, SHA-256, or SHA-512).
+     * This performance report generated includes the total count of each hashing algorithm, the total time each
+     * algorithm took to compute all the hash values for all the files in a given directory, and the average time
+     * that each algorithm took to compute a hash code with respect to the total number of files it had to compute it for.
+     */
     private void generatePerformanceStats() {
         long averageTime = 0;
         for(String algoType: HashCodes.keySet()) {
@@ -277,6 +315,13 @@ public class FileIntegrityChecker {
             logging("The statistics for " + algoType + " algorithm are: " + statistics.count + " in frequency, " + statistics.totalTime + " milliseconds in total time, and " + averageTime + " milliseconds in average time.");
         }
     }
+
+    /**
+     * This retrieves the current permission settings from a file and returns it. Permission may be
+     * read, write, or execute.
+     * @param file The file to look for permissions from.
+     * @return the permission from a file.
+     */
     private String retrievePermissions(File file) {
         StringBuilder build = new StringBuilder();
         if(file.canRead()) {
@@ -299,6 +344,14 @@ public class FileIntegrityChecker {
         }
         return build.toString();
     }
+
+    /**
+     * This saves the current state of the files in a directory into a logger/text file document.
+     * Used for later when making comparisons with more current iterations of the file states to check
+     * and see if anything was modified. The state information logged includes the file path, file size, last updated,
+     * permissions, MD5, SHA-256, and SHA-512.
+     * @param baseline of files in a given directory, (original states of files).
+     */
     private void saveBaseline(String baseline) {
         Path currentDir = Paths.get("").toAbsolutePath();
         String baseLogDirectory = "File_Integrity_Checker_Baseline";
@@ -329,6 +382,14 @@ public class FileIntegrityChecker {
             System.exit(-1);
         }
     }
+
+    /**
+     * This loads the baseline states of the files in a given directory into the program during
+     * execution.
+     * @param baseline The original states of the files, include file path, file size, last updated,
+     * permissions, MD5, SHA-256, and SHA-512.
+     * @return a flag, true if the baseline exist and was loaded and false if the baseline does not exist.
+     */
     private boolean loadBaseline(String baseline) {
         boolean loaded = false;
         Path currentDir = Paths.get("").toAbsolutePath();
@@ -378,6 +439,13 @@ public class FileIntegrityChecker {
         return loaded;
     }
 
+    /**
+     * This takes a file, computes and returns a hash value for it using MD5.
+     * @param file The hash code to compute for.
+     * @return The hash value.
+     * @throws NoSuchAlgorithmException if an error occurs.
+     * @throws IOException if an error occurs.
+     */
     private String hashMD5(File file) throws NoSuchAlgorithmException, IOException {
         String hash = "";
         MessageDigest md = MessageDigest.getInstance("MD5");
@@ -399,6 +467,13 @@ public class FileIntegrityChecker {
         return hash;
     }
 
+    /**
+     * This takes a file, computes and returns a hash value for it using SHA-256.
+     * @param file The hash code to compute for.
+     * @return The hash value.
+     * @throws NoSuchAlgorithmException if an error occurs.
+     * @throws IOException if an error occurs.
+     */
     private String hashSHA256(File file) throws NoSuchAlgorithmException, IOException {
         String hash = "";
         MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -420,6 +495,13 @@ public class FileIntegrityChecker {
         return hash;
     }
 
+    /**
+     * This takes a file, computes and returns a hash value for it using SHA-512.
+     * @param file The hash code to compute for.
+     * @return The hash value.
+     * @throws NoSuchAlgorithmException if an error occurs.
+     * @throws IOException if an error occurs.
+     */
     private String hashSHA512(File file) throws NoSuchAlgorithmException, IOException {
         String hash = "";
         MessageDigest md = MessageDigest.getInstance("SHA-512");
@@ -440,6 +522,10 @@ public class FileIntegrityChecker {
         return hash;
     }
 
+    /**
+     * This logs real time events during program execution and saves output to a logger.
+     * @param message event messages during program execution.
+     */
     private void logging(String message) {
         Path currentDir = Paths.get("").toAbsolutePath();
         String baseLogDirectory = "File_Integrity_Checker_Logger";
@@ -461,6 +547,10 @@ public class FileIntegrityChecker {
         }
     }
 
+    /**
+     * List of popup security alerts to notify user if a file has been modified by a malicious
+     * entity or event.
+     */
     private void popAlerts() {
         if(alerts.isEmpty()) {
             return;
