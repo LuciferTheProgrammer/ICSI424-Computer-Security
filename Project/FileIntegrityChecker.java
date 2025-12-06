@@ -82,6 +82,11 @@ public class FileIntegrityChecker {
             return;
         }
         File[] files = dir.listFiles();
+        if(files == null) {
+            System.out.println("System error, cannot list files: " + dir.getAbsolutePath());
+            logging("System error, cannot list files: " + dir.getAbsolutePath());
+            return;
+        }
         for(File file: files) {
             if(file.isFile()) {
                 String filePath = file.getAbsolutePath();
@@ -161,6 +166,11 @@ public class FileIntegrityChecker {
             return current;
         }
         File[] files = directory.listFiles();
+        if(files == null) {
+            System.out.println("System error, cannot list files: " + directory.getAbsolutePath());
+            logging("System error, cannot list files: " + directory.getAbsolutePath());
+            return current;
+        }
         for (File file : files) {
             if (file.isFile()) {
                 String filePath = file.getAbsolutePath();
@@ -233,7 +243,25 @@ public class FileIntegrityChecker {
                 logging("The system has detected that the file: " + file + " has been modified by change in file permissions.");
                 alerts.add("Permissions has changed for " + file + ".");
             }
-            if ((!oldRecord.MD5.equals(newRecord.MD5)) || (!oldRecord.SHA256.equals(newRecord.SHA256)) || (!oldRecord.SHA512.equals(newRecord.SHA512))) {
+            boolean mdMatch = oldRecord.MD5.equals(newRecord.MD5);
+            boolean sha256Match = oldRecord.SHA256.equals(newRecord.SHA256);
+            boolean sha512Match = oldRecord.SHA512.equals(newRecord.SHA512);
+            HashInfo mdStatistics = HashCodes.get("MD5");
+            HashInfo sha256Statistics = HashCodes.get("SHA-256");
+            HashInfo sha512Statistics = HashCodes.get("SHA-512");
+            mdStatistics.totalComparisons++;
+            if(mdMatch){
+                mdStatistics.matchesCount++;
+            }
+            sha256Statistics.totalComparisons++;
+            if(sha256Match){
+                sha256Statistics.matchesCount++;
+            }
+            sha512Statistics.totalComparisons++;
+            if(sha512Match){
+                sha512Statistics.matchesCount++;
+            }
+            if (!mdMatch || !sha256Match|| !sha512Match) {
                 System.out.println("The system has detected that the file: " + file + " has been modified by change in file MD value.");
                 logging("The system has detected that the file: " + file + " has been modified by change in file MD value.");
                 alerts.add("MD value has changed for " + file + ".");
@@ -289,7 +317,6 @@ public class FileIntegrityChecker {
             HashInfo hashRecord = new HashInfo();
             HashCodes.put(algorithm, hashRecord);
             return;
-
         }
         statistics.totalTime += timeLapse;
         statistics.count++;
@@ -298,8 +325,10 @@ public class FileIntegrityChecker {
     /**
      * To generate a numerical performance report for each hashing algorithm (MD5, SHA-256, or SHA-512).
      * This performance report generated includes the total count of each hashing algorithm, the total time each
-     * algorithm took to compute all the hash values for all the files in a given directory, and the average time
-     * that each algorithm took to compute a hash code with respect to the total number of files it had to compute it for.
+     * algorithm took to compute all the hash values for all the files in a given directory, the average time
+     * that each algorithm took to compute a hash code with respect to the total number of files it had to compute it for,
+     * and the accuracy of each algorithm to identify if there is match with the baseline hash and current computed hash (100% for all algorithms)
+     * and if there is change.
      */
     private void generatePerformanceStats() {
         long averageTime = 0;
@@ -311,11 +340,15 @@ public class FileIntegrityChecker {
             else if (statistics.count == 0) {
                 averageTime = 0;
             }
-            System.out.println("The statistics for " + algoType + " algorithm are: " + statistics.count + " in frequency, " + statistics.totalTime + " milliseconds in total time, and " + averageTime + " milliseconds in average time.");
-            logging("The statistics for " + algoType + " algorithm are: " + statistics.count + " in frequency, " + statistics.totalTime + " milliseconds in total time, and " + averageTime + " milliseconds in average time.");
+            double accuracy =  0.0;
+            if(statistics.totalComparisons > 0) {
+                accuracy = (statistics.matchesCount * 100.0) / statistics.totalComparisons;
+                accuracy = Math.round(accuracy * 100.0) / 100.0;
+            }
+            System.out.println("The statistics for " + algoType + " algorithm are: " + statistics.count + " in frequency, " + statistics.totalTime + " milliseconds in total time, " + averageTime + " milliseconds in average time, and the accuracy is " + accuracy + "%");
+            logging("The statistics for " + algoType + " algorithm are: " + statistics.count + " in frequency, " + statistics.totalTime + " milliseconds in total time, " + averageTime + " milliseconds in average time, and accuracy is " + accuracy + "%");
         }
     }
-
     /**
      * This retrieves the current permission settings from a file and returns it. Permission may be
      * read, write, or execute.
