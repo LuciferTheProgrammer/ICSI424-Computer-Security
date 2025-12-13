@@ -1,3 +1,5 @@
+***Note that the time displayed here for each hash algorithm is the total cumulative time spent computing the hashes across all files and across every iteration, summed over the entire execution of the program and accuracy is defined as a baseline match rate, the percent of file hash comparisons where the calculated hash matched the stored baseline hash. If all comparisons are a match, then accuracy here is 100%. Otherwise, a mismatch will yield a lower accuracy. This means that a mismatch equates to a detected change from a file(s). In addition, the average time of each hashing algorithm, which is not displayed here is displayed in the console when the program is executed and stored in the File_Integrity_Checker_Logger/LoggerEvents.txt during and after program execution.***
+
 TestA - Single Big File
 +----------+---------+---------+-------+----------+
 | Pass     | SHA-256 | SHA-512 | MD5   | Accuracy |
