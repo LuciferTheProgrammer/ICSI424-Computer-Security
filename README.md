@@ -1,4 +1,5 @@
 # ICSI424 - Computer Security
+Applications are contained in the Project folder.
 
 Project Source Code  
 Rheinard Zadanowsky  
